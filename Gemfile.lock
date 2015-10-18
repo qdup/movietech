@@ -49,7 +49,9 @@ GEM
     faraday (0.9.1)
       multipart-post (>= 1.2, < 3)
     ffi (1.9.6)
-    gem (0.0.1.alpha)
+    foundation-rails (5.2.3.0)
+      railties (>= 3.1.0)
+      sass (>= 3.2.0)
     hashie (3.4.0)
     hike (1.2.3)
     i18n (0.7.0)
@@ -76,9 +78,12 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
+    puma (2.7.1)
+      rack (>= 1.1, < 2.0)
     rack (1.5.5)
     rack-test (0.6.3)
       rack (>= 1.0)
+    rack-timeout (0.0.4)
     rails (4.1.1)
       actionmailer (= 4.1.1)
       actionpack (= 4.1.1)
@@ -155,12 +160,14 @@ DEPENDENCIES
   better_errors
   coffee-rails (~> 4.0.0)
   faraday
-  gem
+  foundation-rails
   hashie
   jbuilder (~> 2.0)
   jquery-rails
   pg
   pry
+  puma
+  rack-timeout
   rails (= 4.1.1)
   rails_12factor (= 0.0.2)
   redis

@@ -37,12 +37,15 @@ gem 'spring',        group: :development
 
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+ruby '2.1.2'
+gem 'pg'
 
 group :production do
   gem 'rails_12factor', '0.0.2'
-  gem 'gem'
+  gem 'puma'
 end
 
+gem 'rack-timeout' #There is no request timeout mechanism inside of Puma.
 
 gem 'better_errors'
 gem 'redis'
@@ -56,3 +59,6 @@ group :development, :test do
 end
 
 gem 'ruby-trello'
+gem 'foundation-rails'
+
+
