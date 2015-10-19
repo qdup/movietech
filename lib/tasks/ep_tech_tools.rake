@@ -208,7 +208,6 @@ def ep_tech_encode_verfied_check
             end
             response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], '100', user_num, auth_token)
             # response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], desc_h['progress'], user_num, auth_token)
-            binding.pry
             card.delete if response == 200
             puts "Verified and removed card: #{card.desc}"
 
