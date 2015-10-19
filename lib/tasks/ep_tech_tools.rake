@@ -206,7 +206,6 @@ def ep_tech_encode_verfied_check
                 desc_h[kv_arr[0]] = kv_arr[1]
               end
             end
-            binding.pry
             response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], '100', user_num, auth_token)
             # response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], desc_h['progress'], user_num, auth_token)
             binding.pry
