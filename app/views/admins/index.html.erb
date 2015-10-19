@@ -1,0 +1,40 @@
+<% if true %>
+  <div class="row exhibitors-index-page">
+    <div class="small-12 columns stats-head">
+      <h2 class="subhead left"><i class="fa fa-bar-chart-o"></i> Users </h2>
+      <h5 class="right"><i class="fi-results-demographics"></i> Total Users: <%= @users.count %></h5>
+    </div>
+  </div>
+  <div class="row">
+    <table class="stats-table display" table id="admin-user-view" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>City</th>
+          <th>Created</th>
+          <th>Confirmed</th>
+          <th>Last Sign In</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td><a href="/users/<%= user.id %>">
+              <%= link_to user_path(user) do %>
+                <%= truncate user.display_name, length: 50  %>
+              <% end %>
+            </a></td>
+            <% if user.email %>
+              <td><%= user.email %></td>
+            <% else %>
+              <td>N/A</td>
+            <% end %>
+            <td><%= user.created_at.strftime('%b-%d-%y') %></td>
+            <td><%= user.last_sign_in_at.strftime('%b-%d-%y') if user.last_sign_in_at %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

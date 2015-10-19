@@ -47,7 +47,7 @@ end
 
 gem 'rack-timeout' #There is no request timeout mechanism inside of Puma.
 
-gem 'better_errors'
+
 gem 'redis'
 
 gem 'faraday'
@@ -56,9 +56,14 @@ gem 'hashie'
 
 group :development, :test do
   gem 'pry'
+  gem 'letter_opener'
+  gem 'better_errors'
+  gem 'byebug'
+  gem 'binding_of_caller'
 end
 
 gem 'ruby-trello'
 gem 'foundation-rails'
+gem 'devise'
 
 
