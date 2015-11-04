@@ -8,9 +8,8 @@ include ApplicationHelper
 require 'trello'
 require 'uri'
 require 'net/http'
+require "net/ftp"
 
-TRELLO_DEVELOPER_PUBLIC_KEY="26393a3a5dd7581bdb69a7e6dde3ef18"
-TRELLO_MEMBER_TOKEN="ce98b0d2ed5561d35db62d14c4e87aa93ca01bc1ed25b8734a93386877dba5b6"
 BOARD_NAME = 'EP Incomplete Downloads'
 BOARD_DESC = 'EP Incomplete Downloads List'
 CREATED_CARD_LIST_NAME = 'Download Reported Incomplete'
@@ -26,8 +25,8 @@ namespace :ep_tech_tools do
     ep_tech_encode_download_check
   end
 
-  task ep_tech_encode_verfied_check: :environment do
-    ep_tech_encode_verfied_check
+  task ep_tech_encode_verified_check: :environment do
+    ep_tech_encode_verified_check
   end
 end
 
@@ -167,7 +166,7 @@ def ep_tech_encode_download_check
   end
 end
 
-def ep_tech_encode_verfied_check
+def ep_tech_encode_verified_check
   begin
     init_trello
     board_dl = nil
@@ -222,17 +221,15 @@ def ep_tech_encode_verfied_check
 
 
   rescue Exception => e
-    puts 'Error handling ep_tech_encode_verfied_check request. Error: ' + e.to_s
+    puts 'Error handling ep_tech_encode_verified_check request. Error: ' + e.to_s
   end
 end
 
-
 def init_trello
   Trello.configure do |trello|
-    trello.developer_public_key = TRELLO_DEVELOPER_PUBLIC_KEY
-    trello.member_token = TRELLO_MEMBER_TOKEN
+    trello.developer_public_key = ENV['TRELLO_DEVELOPER_PUBLIC_KEY']
+    trello.member_token = ENV['TRELLO_MEMBER_TOKEN']
   end
-
   Trello::Board.all.each do |board|
     puts "* #{board.name}"
   end
@@ -304,9 +301,9 @@ end
 
 def format_card_desc(server, booking, encode)
   if encode.present?
-    desc_str = "server_id=#{server.server_id.to_s}\n" + encode.map{|k,v| "#{k}=#{v}"}.join("\n")
+    desc_str = "encode_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n" + encode.map{|k,v| "#{k}=#{v}"}.join("\n")
   else
-    desc_str = "server_id=#{server.server_id.to_s}\n"
+    desc_str = "encode_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n"
   end
   return desc_str
 end
@@ -356,7 +353,24 @@ def set_encode_dl_progress(server_id, encode_id, i_progress, user_num, token_req
     puts 'Error handling set_encode_dl_progress request. Error: ' + e.to_s
     return 500
   end
+end
 
 
+def enumerate_available_encodes
 
+  ftp = Net::FTP.new("ip.addrees")
+  ftp.login("username","password")
+  #get the file list, returns an array
+  files = ftp.list("*.msg")
+  # each element in the array is a string in the standard FTP list format:
+  # e.g.: "-rw-r--r-- ftpowner ftpowner 5748456 Nov 28 08:20:27 somefile.msg"
+  #so the filename we want is the last space-seperated element in this string
+  #split by space, returns an array
+  firstfile = files[0].split(" ")
+  # get the last element in this array, which is the filename
+  filename = firstfile[firstfile.size -1]
+  #get the file
+  ftp.get(filename) #gets file in current  mode (text or binary), or:
+  ftp.getbinaryfile(filename) #gets file in text mode, or:
+  ftp.gettextfile(filename) #gets file in binary mode
 end
