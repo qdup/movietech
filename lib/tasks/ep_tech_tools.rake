@@ -35,8 +35,7 @@ def ep_tech_encode_download_check
     init_trello
     board_dl = nil
     Trello::Board.all.detect do |board|
-      # board_dl = board if board.name == BOARD_NAME
-      if board.name == BOARD_NAME
+    if board.name == BOARD_NAME
         board_dl = board
       end
     end
@@ -60,7 +59,6 @@ def ep_tech_encode_download_check
       auth_token = auth_obj.token
       download_conn = Faraday.new
 
-      # resp = download_conn.get download_status_url_base, {user: '164', token: auth_token, startdate: str_start_date_gt, startdate: str_start_date_lt}
       resp = download_conn.get download_status_url_base,  {user: '164', token: auth_token, startdate: str_start_date_gt, 'sort(+startdate)' => ""}
 
       bookings = JSON.parse(resp.body)
@@ -193,10 +191,10 @@ def ep_tech_encode_verified_check
         auth_json = JSON.parse(resp_auth.body)
         auth_obj = Hashie::Mash.new auth_json
         auth_token = auth_obj.token
-
         verified_list.cards.each do |card|
           desc_arr = card.desc.split
-          if desc_arr.present? && desc_arr.first.include?('server_id=')
+          puts "Checking verify on card: #{desc_arr}"
+          if desc_arr.present? && desc_arr.first.include?('booking_id=')
             puts "Verified card name: #{card.name} -  card desc: #{card.desc}"
             desc_h = Hash.new
             desc_arr.each do |desc|
@@ -206,10 +204,8 @@ def ep_tech_encode_verified_check
               end
             end
             response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], '100', user_num, auth_token)
-            # response = set_encode_dl_progress(desc_h['server_id'], desc_h['encode_id'], desc_h['progress'], user_num, auth_token)
             card.delete if response == 200
             puts "Verified and removed card: #{card.desc}"
-
           else
             # puts "LEGACY Verified card name: #{card.name} -  card desc: #{card.desc}"
           end
@@ -301,9 +297,9 @@ end
 
 def format_card_desc(server, booking, encode)
   if encode.present?
-    desc_str = "encode_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n" + encode.map{|k,v| "#{k}=#{v}"}.join("\n")
+    desc_str = "booking_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n" + encode.map{|k,v| "#{k}=#{v}"}.join("\n")
   else
-    desc_str = "encode_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n"
+    desc_str = "booking_id=#{booking.booking_id}\n" + "server_id=#{server.server_id.to_s}\n"
   end
   return desc_str
 end
@@ -332,25 +328,45 @@ def set_encode_dl_progress(server_id, encode_id, i_progress, user_num, token_req
 
     #api note: body payload must be a json string literal with NO spaces and all keys and values are delimited with double quotes
     body_str = %Q!{"server_id":"#{server_id.to_s}","encode_id":"#{encode_id.to_s}","percent":"#{i_progress.to_s}"}!
+    puts "processing progress update: #{body_str}"
+    # epbeacon.com/filetransfers/api/0.1/delivery/view/?token=46j-940c5851d4736a2cac10&user=164&record=2017
+    # encode_url_base = 'http://epbeacon.com/filetransfers/api/0.1/delivery/view/'
 
-    file_tx_url_base = "http://epbeacon.com/filetransfers/api/0.1/bookingprogress/add/"
-    conn_tx = Faraday.new
+    # conn = Faraday.new(url: encode_url_base, ssl: { verify: false }) do |faraday|
+    #   faraday.request :url_encoded             # form-encode POST params
+    #   faraday.response :logger                 # log requests to STDOUT
+    #   faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
+    # end
+    # # binding.pry
+    # response = conn.get do |req|
+    #   req.headers['Content-Type'] = 'application/json'
+    #   req.params = { user: '164', record: encode_id, token: token_req}
+    # end
+    # # binding.pry
+    # if response.status == 200
 
-    conn = Faraday.new(url: file_tx_url_base, ssl: { verify: false }) do |faraday|
-      faraday.request :url_encoded             # form-encode POST params
-      faraday.response :logger                 # log requests to STDOUT
-      faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
-    end
-    response = conn.post do |req|
-      req.headers['Content-Type'] = 'application/json'
-      req.params = { user: '164', token: token_req}
-      req.body = body_str #'{"server_id":"8","encode_id":"28","percent":"55"}'
-    end
 
-    return response.status
+      file_tx_url_base = "http://epbeacon.com/filetransfers/api/0.1/bookingprogress/add/"
+      conn_progress = Faraday.new(url: file_tx_url_base, ssl: { verify: false }) do |faraday|
+        faraday.request :url_encoded             # form-encode POST params
+        faraday.response :logger                 # log requests to STDOUT
+        faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
+      end
+      puts "updating: #{body_str}"
+      response = conn_progress.post do |req|
+        req.headers['Content-Type'] = 'application/json'
+        req.params = { user: '164', token: token_req}
+        req.body = body_str #'{"server_id":"8","encode_id":"28","percent":"55"}'
+      end
+      puts "Successfully updated progress of #{body_str}"
+    # else
+    #   puts "Encode not found for  #{body_str}"
+    # end
+
+    return 200 #response.status
 
   rescue Exception => e
-    puts 'Error handling set_encode_dl_progress request. Error: ' + e.to_s
+    puts "Error handling set_encode_dl_progress request. Error: #{e.to_s}  request: #{body_str}"
     return 500
   end
 end
