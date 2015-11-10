@@ -35,7 +35,6 @@ def load_daily_gmail_stats
   #   "responseDetails": null,
   #   "responseStatus": 200
   # }
-
   conn = Faraday.new(url: gnews_url_base, ssl: { verify: false }) do |faraday|
     faraday.request :url_encoded             # form-encode POST params
     faraday.response :logger                 # log requests to STDOUT
@@ -55,6 +54,7 @@ def load_daily_gmail_stats
       news_item = Hashie::Mash.new  news_item_json
       puts "title: #{news_item.title}\n"
       puts "published Date: #{news_item.publishedDate}\n"
+      puts "Location: #{news_item.location}\n"
       puts "content: #{news_item.content}\n\n"
     end
   end
