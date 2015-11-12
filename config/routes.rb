@@ -57,5 +57,20 @@ Rails.application.routes.draw do
   #   end
   root 'admins#index'
   resources :users
+  namespace :api, defaults: { format: 'json' }  do
+    namespace :v1 do
+      get 'movies/sm_data', to: 'movies#sm_data'
+      resources :sm_data, only: [:show]
+    end
+  end
+    namespace :api, defaults: { format: 'json' } do
+    scope module: :v1 do
+      resources :filmmaker_movies
+      resources :shows
+    end
+  end
+
+
+
 
 end
