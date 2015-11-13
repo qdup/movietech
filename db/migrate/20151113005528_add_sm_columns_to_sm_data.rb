@@ -1,6 +1,5 @@
 class AddSmColumnsToSmData < ActiveRecord::Migration
   def change
-    add_column :sm_data, :twitter_id, :string
     add_column :sm_data, :movie_title, :string
     add_column :sm_data, :fb_page_name, :string
     add_column :sm_data, :fb_handle, :string

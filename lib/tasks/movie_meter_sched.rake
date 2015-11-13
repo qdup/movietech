@@ -5,23 +5,23 @@ require 'typhoeus/adapters/faraday'
 require 'hashie'
 require "#{Rails.root}/app/helpers/application_helper"
 include ApplicationHelper
-# require 'trello'
-# require 'uri'
-# require 'net/http'
-# require "net/ftp"
 
 namespace :movie_meter_sched do
   require 'csv'
+
+  datekey_req = Date.today
+
   desc 'Check EP Download Status'
   task load_daily_gmail_stats: :environment do
     load_daily_gmail_stats
   end
+
   task load_daily_fb_stats: :environment do
-    load_daily_fb_stats
+    load_daily_fb_stats(datekey_req)
   end
 
   task load_daily_twitter_stats: :environment do
-    load_daily_twitter_stats
+    load_daily_twitter_stats(datekey_req)
   end
 end
 
@@ -68,7 +68,7 @@ def load_daily_gmail_stats
   end
 end
 
-def load_daily_fb_stats
+def load_daily_fb_stats(datekey_req)
   # get get a fb token ...
   # https://graph.facebook.com/oauth/access_token?client_id={app_id}&client_secret={app_secret}&grant_type=client_credentials
   # returns access_token=xxxxxxxx|xxxxxxxxxx
@@ -122,7 +122,8 @@ def load_daily_fb_stats
 
         if response.status == 200
           curr_tmdb_id = record['TMDB_ID'].to_i
-          curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+          # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+          curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :datekey => datekey_req).first_or_create
           json_resp = JSON.parse(response.body)
           curr_fb_likes = json_resp['likes'].to_i
           curr_fb_talk_about =  json_resp['talking_about_count'].to_i
@@ -146,7 +147,7 @@ def load_daily_fb_stats
   end
 end
 
-def load_daily_twitter_stats
+def load_daily_twitter_stats(datekey_req)
   # https://graph.facebook.com/RevenantMovie?fields=likes,talking_about_count&access_token=<access_token>
     # returns
     # {
@@ -158,20 +159,6 @@ def load_daily_twitter_stats
   secret = ENV['TWITTER_SECRET']
 
   encoded_auth = Base64.strict_encode64("#{key}:#{secret}")
-
-
-    # res = RestClient::Resource.new "https://api.twitter.com/oauth2/token/"
-    # response = ''
-
-    # options = {}
-    # options['Authorization'] = "Basic #{encoded}"
-    # options['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
-
-    # res.post('grant_type=client_credentials', options) do |response, request, result|
-    #     response << "#{CGI::escapeHTML(response.inspect)}<br /><br />"
-    #     response << "#{CGI::escapeHTML(request.inspect)}<br /><br />"
-    #     response << "#{CGI::escapeHTML(result.inspect)}<br />"
-    # end
 
   # token response: "{\"token_type\":\"bearer\",\"access_token\":\"returned_token\"}"
   twitter_api_url_base = "https://api.twitter.com/"
@@ -193,7 +180,7 @@ def load_daily_twitter_stats
   result = result.partition('access_token&quot;:&quot;').last
   result = result.split('&quot')
   twitter_token = result.first
-  binding.pry
+
 
   # Get https://api.twitter.com/1.1/users/show.json?screen_name=RevenantMovie
   # In headers of get request add:
@@ -210,7 +197,6 @@ def load_daily_twitter_stats
     faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
   end
 
-  binding.pry
 
   response = conn.get do |req|
     req.headers['Content-Type'] = 'application/json'
@@ -221,9 +207,6 @@ def load_daily_twitter_stats
   json_resp = JSON.parse(response.body)
   curr_statuses_count = json_resp['statuses_count'].to_i
   curr_followers_count = json_resp['followers_count'].to_i
-
-  binding.pry
-
 
   if response.status == 200
 
@@ -238,8 +221,6 @@ def load_daily_twitter_stats
         twitter_handle = record['Twitter Handle'].gsub(/\s+/, "")
         puts "Handling page name: #{twitter_handle}"
 
-        binding.pry
-
         response = conn.get do |req|
           req.headers['Content-Type'] = 'application/json'
           req.headers['Authorization'] = "Bearer #{twitter_token}"
@@ -250,11 +231,11 @@ def load_daily_twitter_stats
         curr_statuses_count = json_resp['statuses_count'].to_i
         curr_followers_count = json_resp['followers_count'].to_i
         curr_twitter_id = json_resp['id']
-        binding.pry
 
         if response.status == 200
           curr_tmdb_id = record['TMDB_ID'].to_i
-          curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+          # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+          curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :datekey => datekey_req).first_or_create
           json_resp = JSON.parse(response.body)
           curr_twitter_followers = curr_statuses_count
           curr_twitter_statuses =  curr_followers_count
@@ -269,33 +250,12 @@ def load_daily_twitter_stats
           curr_sm_data.twitter_hashtag
           curr_sm_data.twitter_page_name
 
-
-
-
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
           puts "Twitter statuses about count: #{curr_twitter_statuses.to_s}"
           puts "Twitter followers: #{curr_twitter_followers.to_s}"
           puts "Tmdb id: #{curr_tmdb_id.to_s}"
-
-
-
-    #           add_column :sm_data, :twitter_id, :string
-    # add_column :sm_data, :movie_title, :string
-    # add_column :sm_data, :fb_page_name, :string
-    # add_column :sm_data, :fb_handle, :string
-    # add_column :sm_data, :twitter_handle, :string
-    # add_column :sm_data, :twitter_hashtag, :string
-    # add_column :sm_data, :twitter_page_name, :string
-    # add_column :sm_data, :instagram_id, :string
-    # add_column :sm_data, :instagram_handle, :string
-    # add_column :sm_data, :instagram_hashtag, :string
-    # add_column :sm_data, :klout_id, :string
-    # add_column :sm_data, :release_date, :datetime
-
-
-
 
         end
       end
