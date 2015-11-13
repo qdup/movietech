@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151112220637) do
+ActiveRecord::Schema.define(version: 20151113004715) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -43,6 +43,9 @@ ActiveRecord::Schema.define(version: 20151112220637) do
     t.integer  "fb_likes"
     t.integer  "fb_talk_about"
     t.integer  "tmdb_id"
+    t.string   "twitter_id"
+    t.integer  "twitter_statuses"
+    t.integer  "twitter_followers"
   end
 
   create_table "users", force: true do |t|

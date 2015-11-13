@@ -231,8 +231,9 @@ def load_daily_twitter_stats
     csv_text = file
     csv = CSV.parse(csv_text, :headers => true)
     csv.each do |record|
-      unless record['Facebook Page Name'].blank? || record['TMDB_ID'].blank?
+      unless record['Twitter Handle'].blank? || record['TMDB_ID'].blank?
         sleep(0.5)
+
         curr_tmdb_id = record['TMDB_ID'].to_i
         twitter_handle = record['Twitter Handle'].gsub(/\s+/, "")
         puts "Handling page name: #{twitter_handle}"
@@ -262,14 +263,39 @@ def load_daily_twitter_stats
           curr_sm_data.twitter_id = curr_twitter_id
           curr_sm_data.twitter_statuses = curr_twitter_statuses
           curr_sm_data.twitter_followers = curr_twitter_followers
-          curr_sm_data.tmdb_id = curr_twitter_tmdb_id
+          curr_sm_data.tmdb_id = curr_tmdb_id
+
+          curr_sm_data.twitter_id
+          curr_sm_data.twitter_hashtag
+          curr_sm_data.twitter_page_name
+
+
+
 
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
           puts "Twitter statuses about count: #{curr_twitter_statuses.to_s}"
-          puts "Twitter twitter_followers: #{curr_twitter_followers.to_s}"
+          puts "Twitter followers: #{curr_twitter_followers.to_s}"
           puts "Tmdb id: #{curr_tmdb_id.to_s}"
+
+
+
+    #           add_column :sm_data, :twitter_id, :string
+    # add_column :sm_data, :movie_title, :string
+    # add_column :sm_data, :fb_page_name, :string
+    # add_column :sm_data, :fb_handle, :string
+    # add_column :sm_data, :twitter_handle, :string
+    # add_column :sm_data, :twitter_hashtag, :string
+    # add_column :sm_data, :twitter_page_name, :string
+    # add_column :sm_data, :instagram_id, :string
+    # add_column :sm_data, :instagram_handle, :string
+    # add_column :sm_data, :instagram_hashtag, :string
+    # add_column :sm_data, :klout_id, :string
+    # add_column :sm_data, :release_date, :datetime
+
+
+
 
         end
       end
