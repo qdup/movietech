@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151113140140) do
+ActiveRecord::Schema.define(version: 20151114011445) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -48,16 +48,21 @@ ActiveRecord::Schema.define(version: 20151113140140) do
     t.integer  "twitter_followers"
     t.string   "movie_title"
     t.string   "fb_page_name"
-    t.string   "fb_handle"
     t.string   "twitter_handle"
     t.string   "twitter_hashtag"
-    t.string   "twitter_page_name"
-    t.string   "instagram_id"
-    t.string   "instagram_handle"
-    t.string   "instagram_hashtag"
     t.string   "klout_id"
     t.datetime "release_date"
-    t.datetime "datekey"
+    t.datetime "date_key"
+    t.decimal  "klout_score",          precision: 20, scale: 17
+    t.decimal  "klout_day_change",     precision: 20, scale: 17
+    t.decimal  "klout_week_change",    precision: 20, scale: 17
+    t.decimal  "klout_month_change",   precision: 20, scale: 17
+    t.string   "inst_id"
+    t.integer  "inst_followed_by"
+    t.integer  "inst_follows"
+    t.string   "inst_hash_tag"
+    t.integer  "inst_tag_media_count"
+    t.string   "inst_handle"
   end
 
   create_table "users", force: true do |t|
