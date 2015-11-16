@@ -81,7 +81,8 @@ def ep_tech_encode_download_check
         puts "booking json: #{booking_json}"
         booking = Hashie::Mash.new booking_json
         curr_start_date = Date.strptime( booking.startdate, '%Y-%m-%d')
-        if curr_start_date < 15.days.from_now
+        if booking.booking_type == "EP_Network"  &&
+            curr_start_date < 15.days.from_now && booking.servers.present?
           booking.servers.each do |server|
             # {
               # server_id: 125,
