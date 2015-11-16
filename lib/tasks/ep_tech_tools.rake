@@ -184,7 +184,6 @@ def ep_tech_encode_verified_check
       download_status_url_base = 'http://epbeacon.com/filetransfers/api/0.1/delivery/search/'
       conn_auth = Faraday.new
       resp_auth = conn_auth.post auth_url, { username: 'gordon', password: 'fishmonitorcandychalk'}
-      # binding.pry
       user_num = 164 #user gordon id number
 
       if resp_auth.status == 200
@@ -337,12 +336,10 @@ def set_encode_dl_progress(server_id, encode_id, i_progress, user_num, token_req
     #   faraday.response :logger                 # log requests to STDOUT
     #   faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
     # end
-    # # binding.pry
     # response = conn.get do |req|
     #   req.headers['Content-Type'] = 'application/json'
     #   req.params = { user: '164', record: encode_id, token: token_req}
     # end
-    # # binding.pry
     # if response.status == 200
 
 

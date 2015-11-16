@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151019010708) do
+ActiveRecord::Schema.define(version: 20151114011445) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -36,6 +36,35 @@ ActiveRecord::Schema.define(version: 20151019010708) do
   add_index "admins", ["email"], name: "index_admins_on_email", unique: true, using: :btree
   add_index "admins", ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true, using: :btree
 
+  create_table "sm_data", force: true do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "fb_id"
+    t.integer  "fb_likes"
+    t.integer  "fb_talk_about"
+    t.integer  "tmdb_id"
+    t.string   "twitter_id"
+    t.integer  "twitter_statuses"
+    t.integer  "twitter_followers"
+    t.string   "movie_title"
+    t.string   "fb_page_name"
+    t.string   "twitter_handle"
+    t.string   "twitter_hashtag"
+    t.string   "klout_id"
+    t.datetime "release_date"
+    t.datetime "date_key"
+    t.decimal  "klout_score",          precision: 20, scale: 17
+    t.decimal  "klout_day_change",     precision: 20, scale: 17
+    t.decimal  "klout_week_change",    precision: 20, scale: 17
+    t.decimal  "klout_month_change",   precision: 20, scale: 17
+    t.string   "inst_id"
+    t.integer  "inst_followed_by"
+    t.integer  "inst_follows"
+    t.string   "inst_hash_tag"
+    t.integer  "inst_tag_media_count"
+    t.string   "inst_handle"
+  end
+
   create_table "users", force: true do |t|
     t.string   "email",                  default: "", null: false
     t.string   "encrypted_password",     default: "", null: false
@@ -51,6 +80,7 @@ ActiveRecord::Schema.define(version: 20151019010708) do
     t.datetime "updated_at"
     t.string   "fname"
     t.string   "lname"
+    t.string   "api_key"
   end
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree

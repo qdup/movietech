@@ -57,5 +57,12 @@ Rails.application.routes.draw do
   #   end
   root 'admins#index'
   resources :users
+  namespace :api, defaults: { format: 'json' }  do
+    namespace :v1 do
+      resources :sm_data #, only: [:show]
+    end
+  end
+
+
 
 end
