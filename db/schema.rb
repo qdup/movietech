@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151114011445) do
+ActiveRecord::Schema.define(version: 20151116224617) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,6 +35,17 @@ ActiveRecord::Schema.define(version: 20151114011445) do
 
   add_index "admins", ["email"], name: "index_admins_on_email", unique: true, using: :btree
   add_index "admins", ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true, using: :btree
+
+  create_table "daily_etls", force: true do |t|
+    t.decimal  "max_ag_score"
+    t.datetime "datekey"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "max_fb_likes"
+    t.integer  "max_fb_talk_about"
+    t.integer  "max_twitter_followers"
+    t.integer  "max_inst_followed_by"
+  end
 
   create_table "sm_data", force: true do |t|
     t.datetime "created_at"
@@ -63,6 +74,7 @@ ActiveRecord::Schema.define(version: 20151114011445) do
     t.string   "inst_hash_tag"
     t.integer  "inst_tag_media_count"
     t.string   "inst_handle"
+    t.decimal  "aggregate_score",      precision: 5,  scale: 2
   end
 
   create_table "users", force: true do |t|
