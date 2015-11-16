@@ -32,12 +32,18 @@ namespace :movie_meter_sched do
     load_daily_instagram_stats(datekey_req)
   end
 
+  task :update_daily_ag_scores, [:date_req] =>  :environment do |t, args|
+    datekey_req = Date.parse args.date_req if args.date_req
+    update_daily_ag_scores(datekey_req)
+  end
+
   task load_daily_sm_aggregate_stats: :environment do
     load_daily_gmail_stats
     load_daily_fb_stats(datekey_req)
     load_daily_twitter_stats(datekey_req)
     load_daily_klout_stats(datekey_req)
     load_daily_instagram_stats(datekey_req)
+    update_daily_ag_scores(datekey_req)
   end
 
 end
@@ -414,7 +420,6 @@ def load_daily_instagram_stats(datekey_req)
 
   # https://api.instagram.com/v1/users/1421556630?access_token=[ACCESS_TOKEN_HERE]&q=revenantmovie&count=1
 
-
   if true
 
     file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
@@ -540,5 +545,68 @@ def load_daily_instagram_stats(datekey_req)
       end
     end
   end
-
 end
+
+def update_daily_ag_scores(datekey_req)
+  # override current date: rake movie_meter_sched:update_daily_ag_scores['Nov 13 2015']
+  fb_likes_total = SmData.where(:date_key => datekey_req).sum(:fb_likes)
+  fb_talk_about_total = SmData.where(:date_key => datekey_req).sum(:fb_talk_about)
+  twitter_followers_total = SmData.where(:date_key => datekey_req).sum(:twitter_followers)
+  inst_followed_by_total = SmData.where(:date_key => datekey_req).sum(:inst_followed_by)
+
+  fb_likes_total_percentage = 0
+  fb_talk_about_percentage = 0
+  twitter_followers_percentage = 0
+  inst_followed_by_total_percentage = 0
+  ag_score_total = 0
+  max_score = 0
+  max_fb_likes = 0
+  max_fb_talk_about = 0
+  max_twitter_followers = 0
+  max_inst_followed_by = 0
+
+
+  if true
+    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
+    csv_text = file
+    csv = CSV.parse(csv_text, :headers => true)
+    csv.each do |record|
+      unless record['TMDB_ID'].blank?
+        curr_tmdb_id = record['TMDB_ID'].to_i
+        curr_sm_data = SmData.find_by(tmdb_id: curr_tmdb_id, date_key: datekey_req)
+        if curr_sm_data
+          curr_fb_likes_share =  curr_sm_data.fb_likes ? curr_sm_data.fb_likes/fb_likes_total.to_f : 0
+          curr_fb_talk_about_share =  curr_sm_data.fb_talk_about ? curr_sm_data.fb_talk_about/fb_talk_about_total.to_f : 0
+          curr_twitter_followers_share =  curr_sm_data.twitter_followers ? curr_sm_data.twitter_followers/twitter_followers_total.to_f : 0
+          curr_inst_followed_by_share = curr_sm_data.inst_followed_by ? curr_sm_data.inst_followed_by/inst_followed_by_total.to_f : 0
+
+          curr_ag_score = (curr_fb_likes_share + curr_fb_talk_about_share + curr_twitter_followers_share + curr_inst_followed_by_share)/4
+          puts "tmdb: #{curr_tmdb_id} aggregate_score for date: #{datekey_req.to_s} #{curr_ag_score * 100}%"
+
+          fb_likes_total_percentage = fb_likes_total_percentage + curr_fb_likes_share
+          ag_score_total = ag_score_total + curr_ag_score
+
+          max_score = curr_ag_score if curr_ag_score > max_score
+          max_fb_likes = curr_sm_data.fb_likes if curr_sm_data.fb_likes  && curr_sm_data.fb_likes > max_fb_likes
+          max_fb_talk_about = curr_sm_data.fb_talk_about if curr_sm_data.fb_talk_about && curr_sm_data.fb_talk_about > max_fb_talk_about
+          max_twitter_followers = curr_sm_data.twitter_followers if curr_sm_data.twitter_followers && curr_sm_data.twitter_followers > max_twitter_followers
+          max_inst_followed_by = curr_sm_data.inst_followed_by if curr_sm_data.inst_followed_by && curr_sm_data.inst_followed_by > max_inst_followed_by
+        end
+      end
+    end
+  end
+
+  binding.pry
+  curr_etl = DailyEtl.where(datekey: datekey_req).first_or_create
+  curr_etl.max_ag_score = max_score
+  curr_etl.max_fb_likes = max_fb_likes
+  curr_etl.max_fb_talk_about = max_fb_talk_about
+  curr_etl.max_twitter_followers = max_twitter_followers
+  curr_etl.max_inst_followed_by = max_inst_followed_by
+  curr_etl.save
+
+  puts "fb_likes_total_percentage: #{fb_likes_total_percentage.to_s}"
+  puts "ag_score_total: #{ag_score_total.to_s}"
+end
+
+
