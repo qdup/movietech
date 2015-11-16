@@ -6,7 +6,8 @@ class Api::V1::SmDataController < Api::ApiController
     req_parm = {}
     no_response = {}
     req_parm[:tmdb_id] = params[:id]
-    @sm_data_point = SmData.where(req_parm).first
+    # @sm_data_point = SmData.where(req_parm).first
+    @sm_data_point = SmData.where(req_parm)
 
     if @sm_data_point
       respond_with  @sm_data_point, status: :accepted

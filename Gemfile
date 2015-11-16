@@ -38,7 +38,6 @@ gem 'spring',        group: :development
 # Use debugger
 # gem 'debugger', group: [:development, :test]
 ruby '2.1.2'
-gem 'pg'
 
 group :production do
   gem 'rails_12factor', '0.0.2'
