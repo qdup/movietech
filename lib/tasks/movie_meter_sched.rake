@@ -581,6 +581,9 @@ def update_daily_ag_scores(datekey_req)
           curr_inst_followed_by_share = curr_sm_data.inst_followed_by ? curr_sm_data.inst_followed_by/inst_followed_by_total.to_f : 0
 
           curr_ag_score = (curr_fb_likes_share + curr_fb_talk_about_share + curr_twitter_followers_share + curr_inst_followed_by_share)/4
+          curr_sm_data.aggregate_score = curr_ag_score
+          curr_sm_data.save
+
           puts "tmdb: #{curr_tmdb_id} aggregate_score for date: #{datekey_req.to_s} #{curr_ag_score * 100}%"
 
           fb_likes_total_percentage = fb_likes_total_percentage + curr_fb_likes_share
@@ -595,8 +598,6 @@ def update_daily_ag_scores(datekey_req)
       end
     end
   end
-
-  binding.pry
   curr_etl = DailyEtl.where(datekey: datekey_req).first_or_create
   curr_etl.max_ag_score = max_score
   curr_etl.max_fb_likes = max_fb_likes
