@@ -7,10 +7,15 @@ class Api::V1::SmDataController < Api::ApiController
     no_response = {}
     req_parm[:tmdb_id] = params[:id]
     # @sm_data_point = SmData.where(req_parm).first
-    @sm_data_point = SmData.where(req_parm)
+    @sm_data_points = SmData.where(req_parm)
+    @max_daily_scores = []
+    @sm_data_points.each do |sm_data|
+      @max_daily_scores <<  DailyEtl.find_by(datekey: sm_data.date_key)
+    end
 
-    if @sm_data_point
-      respond_with  @sm_data_point, status: :accepted
+    if @sm_data_points
+      respond_with(data_points: @sm_data_points, daily_max_scores: @max_daily_scores)
+      # respond_with  @sm_data_point, status: :accepted
     else
       respond_with no_response, status: 404
     end
