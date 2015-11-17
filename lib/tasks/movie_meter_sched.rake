@@ -311,11 +311,13 @@ def load_daily_klout_stats(datekey_req)
           req.params['screenName'] = twitter_handle
         end
 
-        json_resp = JSON.parse(response.body)
 
-        curr_klout_id = json_resp['id'] #record['Klout ID']
+        if response.status == 200
 
-        if curr_klout_id #response.status == 200
+          json_resp = JSON.parse(response.body)
+
+          curr_klout_id = json_resp['id'] #record['Klout ID']
+
           # url = 'http://api.klout.com/v2/user.json/242068504768050526?key=s583thcrgq2ksaptxytke9b2'
           url = "http://api.klout.com/v2/user.json/#{curr_klout_id}"
           conn = Faraday.new(url: url, ssl: { verify: false }) do |faraday|
