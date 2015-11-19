@@ -28,3 +28,11 @@ module Movietech
     end
   end
 end
+
+# SearchParams - handles search parameter defs
+module SearchParams
+  SIZE_LIMIT_DEFAULT =  24
+  START_OFFSET_DEFAULT = 0
+  MAX_DAYS_IN_FUTURE = 45
+  MAX_DAYS_IN_PAST = 45
+end
