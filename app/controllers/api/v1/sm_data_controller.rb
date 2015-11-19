@@ -3,11 +3,18 @@ class Api::V1::SmDataController < Api::ApiController
   before_action :authenticate
 
   def show
+
     req_parm = {}
     no_response = {}
     req_parm[:tmdb_id] = params[:id]
-    # @sm_data_point = SmData.where(req_parm).first
-    @sm_data_points = SmData.where(req_parm)
+    req_limit = params[:size] ||= SearchParams::SIZE_LIMIT_DEFAULT
+    req_offset = params[:start] ||= SearchParams::START_OFFSET_DEFAULT
+    start_date = params[:start_date] ||= Date.yesterday - 3
+    end_date = params[:end_date] ||= Date.yesterday
+
+    @sm_data_points = SmData.where(req_parm).
+      where('date_key >= ? AND date_key <= ?', start_date, end_date).
+        limit(req_limit).offset(req_offset)
     @max_daily_scores = []
     @sm_data_points.each do |sm_data|
       @max_daily_scores <<  DailyEtl.find_by(datekey: sm_data.date_key)
