@@ -1,6 +1,5 @@
 class Api::V1::SmDataController < Api::ApiController
   respond_to :json
-  before_action :authenticate
 
   def show
     req_parm = {}
@@ -26,15 +25,7 @@ class Api::V1::SmDataController < Api::ApiController
     end
   end
 
-  private
+private
 
-  def authenticate
-    api_key = request.headers['X-Api-Key']
-    @user = User.where(api_key: api_key).first if api_key
 
-    unless @user
-      head status: :unauthorized
-      return false
-    end
-  end
 end
