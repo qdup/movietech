@@ -38,7 +38,7 @@ namespace :movie_meter_sched do
   end
 
   task load_daily_sm_aggregate_stats: :environment do
-    load_daily_gmail_stats
+    # load_daily_gmail_stats
     load_daily_fb_stats(datekey_req)
     load_daily_twitter_stats(datekey_req)
     load_daily_klout_stats(datekey_req)
@@ -458,7 +458,7 @@ def load_daily_instagram_stats(datekey_req)
           # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
-
+          curr_inst_handle = record['Instagram Handle']
           # get follower count
           # {"meta"=>{"code"=>200},
           # "data"=>
@@ -482,7 +482,7 @@ def load_daily_instagram_stats(datekey_req)
           response = conn.get do |request|
             request.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
             request.params['access_token'] = ENV['INSTAGRAM_TOKEN']
-            request.params['q'] = 'thehungergames' #inst_handle
+            request.params['q'] = curr_inst_handle
             request.params['count'] = 'token'
           end
 
@@ -500,6 +500,7 @@ def load_daily_instagram_stats(datekey_req)
             curr_sm_data.inst_handle = record['Instagram Handle']
             #get hash tag count
             # https://api.instagram.com/v1/tags/{tag-name}?access_token=[ACCESS_TOKEN_HERE]
+
             if record['Instagram Hashtag'].present?
 
               curr_inst_hashtag_list = record['Instagram Hashtag'].gsub(/[#]/, '')
