@@ -12,7 +12,8 @@ class Api::V1::SmDataController < Api::ApiController
 
     @sm_data_points = SmData.where(req_parm).
       where('date_key >= ? AND date_key <= ?', start_date, end_date).
-        limit(req_limit).offset(req_offset)
+        limit(req_limit).offset(req_offset).order(date_key: :asc)
+
     @max_daily_scores = []
     @sm_data_points.each do |sm_data|
       @max_daily_scores <<  DailyEtl.find_by(datekey: sm_data.date_key)
