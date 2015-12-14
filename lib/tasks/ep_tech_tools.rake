@@ -408,6 +408,7 @@ def load_sm_directory_from_meta_csv
         curr_sm_directory.fb_id = record['Facebook Id'].chomp.strip if record['Facebook Id']
         curr_sm_directory.fb_handle = record['Facebook Handle'].chomp.strip if record['Facebook Handle']
         curr_sm_directory.twitter_id = record['Twitter ID'].chomp.strip if record['Twitter ID']
+        curr_sm_directory.twitter_handle = record['Twitter Handle'].chomp.strip if record['Twitter Handle']
         curr_sm_directory.instagram_handle = record['Instagram Handle'].chomp.strip if record['Instagram Handle']
         curr_sm_directory.instagram_id = record['Instagram ID'].chomp.strip if record['Instagram ID']
         curr_sm_directory.klout_id = record['Klout ID'].chomp.strip.to_i if record['Klout ID']

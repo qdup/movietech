@@ -41,6 +41,11 @@ namespace :movie_meter_sched do
     load_daily_twitter_stats_from_sm_directory(datekey_req)
   end
 
+  task load_daily_klout_stats_from_sm_directory: :environment do
+    load_daily_klout_stats_from_sm_directory(datekey_req)
+  end
+
+
   task load_daily_sm_aggregate_stats: :environment do
     # load_daily_gmail_stats
     load_daily_fb_stats(datekey_req)
@@ -758,8 +763,6 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
 
         if response.status == 200
 
-          binding.pry
-
           curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
@@ -794,8 +797,6 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
 
           curr_sm_data.twitter_hashtag = curr_twitter_hashtag if curr_twitter_hashtag
 
-          binding.pry
-
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
@@ -809,24 +810,18 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
   end
 end
 
-def load_daily_klout_stats_from_sm_directory(dat_from_sm_directoryekey_req)
+def load_daily_klout_stats_from_sm_directory(datekey_req)
   arr_klout_saved = []
   arr_klout_missing = []
   if true
 
-    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
-    csv_text = file
-    csv = CSV.parse(csv_text, :headers => true)
-    csv.each do |record|
-
-      unless record['Twitter Handle'].blank? || record['TMDB_ID'].blank?
+    SmDirectory.all.each do |sm_dir_record|
+      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
         sleep(0.5)
 
-        curr_tmdb_id = record['TMDB_ID'].to_i
-        twitter_handle = record['Twitter Handle'].gsub(/\s+/, "")
-        puts "Handling klout score for twitter handle: #{twitter_handle}"
-
-        # http://api.klout.com/v2/identity.json/twitter?screenName=revenantmovie&key=[key]
+        curr_tmdb_id = sm_dir_record.tmdb_id
+        twitter_handle = sm_dir_record.twitter_handle
+        puts "Handling klout score for twitter handle: #{twitter_handle.to_s}"
 
         url = 'http://api.klout.com/v2/identity.json/twitter'
         conn = Faraday.new(url: url, ssl: { verify: false }) do |faraday|
@@ -841,14 +836,12 @@ def load_daily_klout_stats_from_sm_directory(dat_from_sm_directoryekey_req)
           req.params['screenName'] = twitter_handle
         end
 
-
         if response.status == 200
 
           json_resp = JSON.parse(response.body)
 
-          curr_klout_id = json_resp['id'] #record['Klout ID']
+          curr_klout_id = json_resp['id']
 
-          # url = 'http://api.klout.com/v2/user.json/242068504768050526?key=s583thcrgq2ksaptxytke9b2'
           url = "http://api.klout.com/v2/user.json/#{curr_klout_id}"
           conn = Faraday.new(url: url, ssl: { verify: false }) do |faraday|
             faraday.request :url_encoded             # form-encode POST params
@@ -892,10 +885,7 @@ def load_daily_klout_stats_from_sm_directory(dat_from_sm_directoryekey_req)
 
           curr_sm_data.tmdb_id = curr_tmdb_id
 
-          puts "record: #{record.inspect}"
-
-          puts "release date: " + record['Release Date'].to_s
-          curr_sm_data.release_date = Date.strptime(record['Release Date'], '%m/%d/%Y') if record['Release Date']
+          curr_sm_data.release_date = sm_dir_record.release_date
 
           curr_sm_data.save
 
@@ -909,10 +899,10 @@ def load_daily_klout_stats_from_sm_directory(dat_from_sm_directoryekey_req)
 
           arr_klout_saved <<  twitter_handle
         else
-          arr_klout_missing <<  record['TMDB_ID']
+          arr_klout_missing <<  sm_dir_record.tmdb_id
         end
       else
-        arr_klout_missing <<  record['TMDB_ID']
+        arr_klout_missing <<  sm_dir_record.tmdb_id
       end
     end
   end
