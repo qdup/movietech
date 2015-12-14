@@ -1134,8 +1134,6 @@ def update_daily_ag_scores_from_sm_directory(datekey_req)
   puts "max_inst_followed_by: #{max_inst_followed_by.to_s}"
   puts "ag_score_total: #{ag_score_total.to_s}"
 
-  binding.pry
-
 end
 
 
