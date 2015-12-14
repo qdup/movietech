@@ -37,6 +37,10 @@ namespace :movie_meter_sched do
     update_daily_ag_scores(datekey_req)
   end
 
+  task load_daily_twitter_stats_from_sm_directory: :environment do
+    load_daily_twitter_stats_from_sm_directory(datekey_req)
+  end
+
   task load_daily_sm_aggregate_stats: :environment do
     # load_daily_gmail_stats
     load_daily_fb_stats(datekey_req)
@@ -46,8 +50,12 @@ namespace :movie_meter_sched do
     update_daily_ag_scores(datekey_req)
   end
 
-  task load_daily_fb_stats_from_sm_directory: :environment do
+  task load_daily_sm_aggregate_stats_from_directory: :environment do
     load_daily_fb_stats_from_sm_directory(datekey_req)
+    load_daily_twitter_stats_from_sm_directory(datekey_req)
+    load_daily_klout_stats_from_sm_directory(datekey_req)
+    load_daily_instagram_stats_from_sm_directory(datekey_req)
+    update_daily_ag_scores_from_sm_directory(datekey_req)
   end
 
 end
@@ -727,19 +735,14 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
 
 
   if twitter_token.present?
-    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
-    csv_text = file
-    csv = CSV.parse(csv_text, :headers => true)
-    csv.each do |record|
-      unless record['Twitter Handle'].blank? || record['TMDB_ID'].blank?
+
+    SmDirectory.all.each do |sm_dir_record|
+      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
         sleep(0.5)
 
-        curr_tmdb_id = record['TMDB_ID'].to_i
-        curr_twitter_handle = record['Twitter Handle'].gsub(/\s+/, "")
+        curr_twitter_handle = sm_dir_record.twitter_handle
         puts "Handling page name: #{curr_twitter_handle}"
 
-        twitter_handle = record['Twitter Handle'].gsub(/\s+/, "") if
-        puts "Handling twitter page name: #{twitter_handle}"
         twitter_url_w_alias = twitter_api_url_base + '1.1/users/show.json'
         conn = Faraday.new(url: twitter_url_w_alias, ssl: { verify: false }) do |faraday|
           faraday.request :url_encoded             # form-encode POST params
@@ -754,8 +757,10 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
         end
 
         if response.status == 200
-          curr_tmdb_id = record['TMDB_ID'].to_i
-          # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+
+          binding.pry
+
+          curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
           json_resp = JSON.parse(response.body)
@@ -769,12 +774,10 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
           curr_sm_data.twitter_id = curr_twitter_id
           curr_sm_data.twitter_statuses = curr_twitter_statuses
           curr_sm_data.twitter_followers = curr_twitter_followers
-          curr_sm_data.tmdb_id = curr_tmdb_id
+          curr_sm_data.tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data.twitter_handle = curr_twitter_handle
 
-          curr_twitter_hashtag_list = record['Twitter Hashtag'].gsub(/[#]/, '')
-
-          curr_twitter_hashtag = curr_twitter_hashtag_list.split('^').first
+          curr_twitter_hashtag = sm_dir_record.twitter_hashtag.first if sm_dir_record.twitter_hashtag.first
 
           inst_url = "https://api.instagram.com/v1/tags/#{curr_twitter_hashtag}"
 
@@ -791,12 +794,14 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
 
           curr_sm_data.twitter_hashtag = curr_twitter_hashtag if curr_twitter_hashtag
 
+          binding.pry
+
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
           puts "Twitter statuses about count: #{curr_twitter_statuses.to_s}"
           puts "Twitter followers: #{curr_twitter_followers.to_s}"
-          puts "Tmdb id: #{curr_tmdb_id.to_s}"
+          puts "Tmdb id: #{sm_dir_record.tmdb_id.to_s}"
 
         end
       end
