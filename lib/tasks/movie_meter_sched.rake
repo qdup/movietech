@@ -49,6 +49,10 @@ namespace :movie_meter_sched do
     load_daily_instagram_stats_from_sm_directory(datekey_req)
   end
 
+  task update_daily_ag_scores_from_sm_directory: :environment do
+    update_daily_ag_scores_from_sm_directory(datekey_req)
+  end
+
   task load_daily_sm_aggregate_stats: :environment do
     # load_daily_gmail_stats
     load_daily_fb_stats(datekey_req)
@@ -1085,14 +1089,10 @@ def update_daily_ag_scores_from_sm_directory(datekey_req)
   max_twitter_followers = 0
   max_inst_followed_by = 0
 
-
   if true
-    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
-    csv_text = file
-    csv = CSV.parse(csv_text, :headers => true)
-    csv.each do |record|
-      unless record['TMDB_ID'].blank?
-        curr_tmdb_id = record['TMDB_ID'].to_i
+    SmDirectory.all.each do |sm_dir_record|
+      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
+        curr_tmdb_id = sm_dir_record.tmdb_id
         curr_sm_data = SmData.find_by(tmdb_id: curr_tmdb_id, date_key: datekey_req)
         if curr_sm_data
           curr_fb_likes_share =  curr_sm_data.fb_likes ? curr_sm_data.fb_likes/fb_likes_total.to_f : 0
@@ -1118,6 +1118,7 @@ def update_daily_ag_scores_from_sm_directory(datekey_req)
       end
     end
   end
+
   curr_etl = DailyEtl.where(datekey: datekey_req).first_or_create
   curr_etl.max_ag_score = max_score
   curr_etl.max_fb_likes = max_fb_likes
@@ -1126,8 +1127,15 @@ def update_daily_ag_scores_from_sm_directory(datekey_req)
   curr_etl.max_inst_followed_by = max_inst_followed_by
   curr_etl.save
 
+  puts "max_score: #{max_score.to_s}"
+  puts "max_fb_talk_aboutmax_fb_talk_about: #{max_fb_talk_about.to_s}"
+  puts "max_twitter_followers: #{max_twitter_followers.to_s}"
   puts "fb_likes_total_percentage: #{fb_likes_total_percentage.to_s}"
+  puts "max_inst_followed_by: #{max_inst_followed_by.to_s}"
   puts "ag_score_total: #{ag_score_total.to_s}"
+
+  binding.pry
+
 end
 
 
