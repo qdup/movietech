@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151116224617) do
+ActiveRecord::Schema.define(version: 20151214013213) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -47,6 +47,15 @@ ActiveRecord::Schema.define(version: 20151116224617) do
     t.integer  "max_inst_followed_by"
   end
 
+  create_table "instagram_hashtags", force: true do |t|
+    t.string   "value"
+    t.integer  "sm_directory_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "instagram_hashtags", ["sm_directory_id"], name: "index_instagram_hashtags_on_sm_directory_id", using: :btree
+
   create_table "sm_data", force: true do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -74,8 +83,31 @@ ActiveRecord::Schema.define(version: 20151116224617) do
     t.string   "inst_hash_tag"
     t.integer  "inst_tag_media_count"
     t.string   "inst_handle"
-    t.decimal  "aggregate_score",      precision: 5,  scale: 2
+    t.decimal  "aggregate_score"
   end
+
+  create_table "sm_directories", force: true do |t|
+    t.integer  "tmdb_id"
+    t.string   "title"
+    t.string   "fb_page_name"
+    t.string   "fb_id"
+    t.string   "twitter_id"
+    t.string   "instagram_handle"
+    t.string   "instagram_id"
+    t.string   "klout_id"
+    t.datetime "release_date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "twitter_hashtags", force: true do |t|
+    t.string   "value"
+    t.integer  "sm_directory_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "twitter_hashtags", ["sm_directory_id"], name: "index_twitter_hashtags_on_sm_directory_id", using: :btree
 
   create_table "users", force: true do |t|
     t.string   "email",                  default: "", null: false

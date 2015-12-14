@@ -610,5 +610,3 @@ def update_daily_ag_scores(datekey_req)
   puts "fb_likes_total_percentage: #{fb_likes_total_percentage.to_s}"
   puts "ag_score_total: #{ag_score_total.to_s}"
 end
-
-

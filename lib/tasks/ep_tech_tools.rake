@@ -18,7 +18,6 @@ CREATED_CARD_LIST_NAME = 'Download Reported Incomplete'
 VERIFIED_FILE_LIST = 'File Verified on Client Server'
 ENCODE_ALERT_LABEL_NAME = 'ENCODE_MISSING'
 
-
 namespace :ep_tech_tools do
   desc 'Check EP Download Status'
   task ep_tech_encode_download_check: :environment do
@@ -28,6 +27,11 @@ namespace :ep_tech_tools do
   task ep_tech_encode_verified_check: :environment do
     ep_tech_encode_verified_check
   end
+
+  task  load_sm_directory_from_meta_csv: :environment do
+    load_sm_directory_from_meta_csv
+  end
+
 end
 
 def ep_tech_encode_download_check
@@ -388,3 +392,51 @@ def enumerate_available_encodes
   ftp.getbinaryfile(filename) #gets file in text mode, or:
   ftp.gettextfile(filename) #gets file in binary mode
 end
+
+def load_sm_directory_from_meta_csv
+  begin
+    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
+    csv_text = file
+    csv = CSV.parse(csv_text, :headers => true)
+    csv.each do |record|
+      unless record['TMDB_ID'].blank?
+        puts "Initializing meta record.. "
+        curr_sm_directory = SmDirectory.new
+        curr_sm_directory.tmdb_id = record['TMDB_ID'].chomp.strip.to_i  if record['TMDB_ID']
+        curr_sm_directory.title = record['Title'].chomp.strip   if record['Title']
+        curr_sm_directory.fb_page_name = record['Facebook Page Name'].chomp.strip if record['Facebook Page Name']
+        curr_sm_directory.fb_id = record['Facebook Id'].chomp.strip if record['Facebook Id']
+        curr_sm_directory.fb_handle = record['Facebook Handle'].chomp.strip if record['Facebook Handle']
+        curr_sm_directory.twitter_id = record['Twitter ID'].chomp.strip if record['Twitter ID']
+        curr_sm_directory.instagram_handle = record['Instagram Handle'].chomp.strip if record['Instagram Handle']
+        curr_sm_directory.instagram_id = record['Instagram ID'].chomp.strip if record['Instagram ID']
+        curr_sm_directory.klout_id = record['Klout ID'].chomp.strip.to_i if record['Klout ID']
+        curr_sm_directory.release_date = Date.strptime(record['Release Date'].chomp.strip, "%m/%d/%Y") if record['Release Date']
+        curr_sm_directory.new_search_term = record['News Search'].chomp.strip if record['News Search']
+
+        if record['Twitter Hashtag'].present?
+          curr_twit_hash_tags = record['Twitter Hashtag'].split("|")
+          curr_twit_hash_tags.each do |hash_tag|
+            curr_sm_directory.twitter_hashtags.build(value: hash_tag)
+          end
+        end
+        if record['Instagram Hashtag'].present?
+          curr_inst_hash_tags = record['Instagram Hashtag'].split("|")
+          curr_inst_hash_tags.each do |hash_tag|
+            curr_sm_directory.instagram_hashtags.build(value: hash_tag)
+          end
+        end
+
+        curr_sm_directory.save
+        puts "Loaded meta record with tmdb_id: #{curr_sm_directory.tmdb_id}"
+      end
+    end
+
+  rescue Exception => e
+    puts "Error detected in load_sm_directory_from_meta_csv. Error: #{e.message.to_s}."
+  end
+
+end
+
+
+
