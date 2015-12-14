@@ -45,6 +45,9 @@ namespace :movie_meter_sched do
     load_daily_klout_stats_from_sm_directory(datekey_req)
   end
 
+  task load_daily_instagram_stats_from_sm_directory: :environment do
+    load_daily_instagram_stats_from_sm_directory(datekey_req)
+  end
 
   task load_daily_sm_aggregate_stats: :environment do
     # load_daily_gmail_stats
@@ -944,15 +947,12 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
   save_cnt = 0
   if true
 
-    file = File.open("lib/meta_input.csv", "r:ISO-8859-1")
-    csv_text = file
-    csv = CSV.parse(csv_text, :headers => true)
-    csv.each do |record|
-      unless record['Instagram Handle'].blank? || record['TMDB_ID'].blank?
+    SmDirectory.all.each do |sm_dir_record|
+      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
         sleep(0.5)
 
-        curr_tmdb_id = record['TMDB_ID'].to_i
-        curr_inst_handle = record['Instagram Handle']
+        curr_tmdb_id = sm_dir_record.tmdb_id
+        curr_inst_handle = sm_dir_record.instagram_handle
         inst_url = "https://api.instagram.com/v1/users/search"
 
         conn = Faraday.new(url: inst_url, ssl: { verify: false }) do |faraday|
@@ -973,8 +973,7 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
         curr_inst_id = json_resp['data'].first['id']
 
         if response.status == 200
-          curr_tmdb_id = record['TMDB_ID'].to_i
-          # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
+          curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
           # get follower count
@@ -1005,9 +1004,11 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
           end
 
           if response.status == 200
+
             json_resp = JSON.parse(response.body)
 
             # "data"=>counts"=>{"media"=>1465, "followed_by"=>1056853, "follows"=>24}
+
             curr_inst_media =  json_resp['data']['counts']['media']
             curr_inst_followed_by = json_resp['data']['counts']['followed_by']
             curr_inst_follows = json_resp['data']['counts']['follows']
@@ -1016,14 +1017,11 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
             curr_sm_data.inst_followed_by = curr_inst_followed_by.to_i
             curr_sm_data.inst_follows = curr_inst_follows.to_i
             curr_sm_data.inst_handle = curr_inst_handle
+
             #get hash tag count
-            # https://api.instagram.com/v1/tags/{tag-name}?access_token=[ACCESS_TOKEN_HERE]
+            if sm_dir_record.instagram_hashtags.first.present?
 
-            if record['Instagram Hashtag'].present?
-
-              curr_inst_hashtag_list = record['Instagram Hashtag'].gsub(/[#]/, '')
-
-              curr_inst_hashtag = curr_inst_hashtag_list.split('^').first
+              curr_inst_hashtag = sm_dir_record.instagram_hashtags.first.value
 
               inst_url = "https://api.instagram.com/v1/tags/#{curr_inst_hashtag}"
 
@@ -1039,6 +1037,7 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
               end
 
               if response.status == 200
+
                 # note: returned hashtag is returned  downcase
                 # curr_inst_hashtag => MockingjayPart2
                 # {"meta"=>{"code"=>200}, "data"=>{"media_count"=>179700, "name"=>"mockingjaypart2"}}
@@ -1066,8 +1065,6 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
       end
     end
   end
-
-
 end
 
 def update_daily_ag_scores_from_sm_directory(datekey_req)
