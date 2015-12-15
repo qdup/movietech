@@ -53,7 +53,8 @@ def ep_tech_encode_download_check
 
     download_status_url_base = 'http://epbeacon.com/filetransfers/api/0.1/delivery/search/'
     conn_auth = Faraday.new
-    resp_auth = conn_auth.post auth_url, { username: 'gordon', password: 'fishmonitorcandychalk'}
+
+    resp_auth = conn_auth.post auth_url, { username: ENV['TRELLO_USERNAME'], password: ENV['TRELLO_PASSWORD']}
 
     if resp_auth.status == 200
       str_start_date_gt =  Time.now.strftime ("%Y-%m-%d__gt")
@@ -188,8 +189,10 @@ def ep_tech_encode_verified_check
 
       download_status_url_base = 'http://epbeacon.com/filetransfers/api/0.1/delivery/search/'
       conn_auth = Faraday.new
-      resp_auth = conn_auth.post auth_url, { username: 'gordon', password: 'fishmonitorcandychalk'}
-      user_num = 164 #user gordon id number
+
+      resp_auth = conn_auth.post auth_url, { username: ENV['TRELLO_USERNAME'], password: ENV['TRELLO_PASSWORD']}
+
+      user_num = 164 #ep user gordon id number
 
       if resp_auth.status == 200
         auth_json = JSON.parse(resp_auth.body)
