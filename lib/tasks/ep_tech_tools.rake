@@ -10,6 +10,13 @@ require 'uri'
 require 'net/http'
 require "net/ftp"
 
+# Token expiration note:
+# The token is set to never expire however the token has expired.
+# To renew the token use the url below - a new trello token will be returned
+# https://trello.com/1/authorize?key=26393a3a5dd7581bdb69a7e6dde3ef18
+#   &scope=read%2Cwrite&name=EP+Incomplete+Downloads
+#     &expiration=never&response_type=token
+
 BOARD_NAME = 'EP Incomplete Downloads'
 BOARD_DESC = 'EP Incomplete Downloads List'
 CREATED_CARD_LIST_NAME = 'Download Reported Incomplete'
