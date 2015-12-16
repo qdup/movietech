@@ -26,6 +26,10 @@ class Api::V1::SmDataController < Api::ApiController
     end
   end
 
+  def update
+
+  end
+
 private
 
 
