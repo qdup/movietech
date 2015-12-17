@@ -37,6 +37,10 @@ namespace :movie_meter_sched do
     update_daily_ag_scores(datekey_req)
   end
 
+  task load_daily_fb_stats_from_sm_directory: :environment do
+    load_daily_fb_stats_from_sm_directory(datekey_req)
+  end
+
   task load_daily_twitter_stats_from_sm_directory: :environment do
     load_daily_twitter_stats_from_sm_directory(datekey_req)
   end
@@ -689,7 +693,11 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
           curr_sm_data = SmData.where(:tmdb_id => sm_dir_record.tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
 
+
           json_resp = JSON.parse(response.body)
+
+          binding.pry
+
 
           curr_fb_likes = json_resp['likes'].to_i
           curr_fb_talk_about =  json_resp['talking_about_count'].to_i
