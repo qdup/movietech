@@ -37,6 +37,10 @@ namespace :movie_meter_sched do
     update_daily_ag_scores(datekey_req)
   end
 
+  task load_daily_fb_stats_from_sm_directory: :environment do
+    load_daily_fb_stats_from_sm_directory(datekey_req)
+  end
+
   task load_daily_twitter_stats_from_sm_directory: :environment do
     load_daily_twitter_stats_from_sm_directory(datekey_req)
   end
@@ -689,6 +693,7 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
           curr_sm_data = SmData.where(:tmdb_id => sm_dir_record.tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
 
+
           json_resp = JSON.parse(response.body)
 
           curr_fb_likes = json_resp['likes'].to_i
@@ -717,7 +722,7 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
   puts "FB stats update completed. Added/updated #{save_cnt.to_s} records."
 end
 
-def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
+def load_daily_twitter_stats_from_sm_directory(datekey_req)
   key = ENV['TWITTER_KEY']
   secret = ENV['TWITTER_SECRET']
 
@@ -787,23 +792,23 @@ def load_daily_twitter_stats_from_sm_directory(d_from_sm_directoryatekey_req)
           curr_sm_data.tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data.twitter_handle = curr_twitter_handle
 
-          curr_twitter_hashtag = sm_dir_record.twitter_hashtag.first if sm_dir_record.twitter_hashtag.first
+          if sm_dir_record.twitter_hashtags.first.present?
+            curr_twitter_hashtag = sm_dir_record.twitter_hashtags.first.value
+            # inst_url = "https://api.instagram.com/v1/tags/#{curr_twitter_hashtag_value}"
 
-          inst_url = "https://api.instagram.com/v1/tags/#{curr_twitter_hashtag}"
+            # conn = Faraday.new(url: inst_url, ssl: { verify: false }) do |faraday|
+            #   faraday.request :url_encoded             # form-encode POST params
+            #   faraday.response :logger                 # log requests to STDOUT
+            #   faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
+            # end
 
-          conn = Faraday.new(url: inst_url, ssl: { verify: false }) do |faraday|
-            faraday.request :url_encoded             # form-encode POST params
-            faraday.response :logger                 # log requests to STDOUT
-            faraday.adapter Faraday.default_adapter  # make requests with Net::HTTP
+            # response = conn.get do |request|
+            #   request.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+            #   request.params['access_token'] = ENV['INSTAGRAM_TOKEN']
+            # end
+
+            curr_sm_data.twitter_hashtag = curr_twitter_hashtag if curr_twitter_hashtag
           end
-
-          response = conn.get do |request|
-            request.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
-            request.params['access_token'] = ENV['INSTAGRAM_TOKEN']
-          end
-
-          curr_sm_data.twitter_hashtag = curr_twitter_hashtag if curr_twitter_hashtag
-
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
@@ -974,9 +979,8 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
 
         json_resp = JSON.parse(response.body)
 
-        curr_inst_id = json_resp['data'].first['id']
-
         if response.status == 200
+          curr_inst_id = json_resp['data'].first['id']
           curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key

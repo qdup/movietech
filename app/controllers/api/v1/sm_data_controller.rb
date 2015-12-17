@@ -1,6 +1,22 @@
 class Api::V1::SmDataController < Api::ApiController
   respond_to :json
 
+
+  # == GET A Social Media by TMDB_ID
+  # movietech.herokuapp.com/api/v1/sm_data/<tmdb_id>
+  # eg: show all aggregated points for a specific tmdb_id: 276907
+  # movietech.herokuapp.com/api/v1/sm_data/276907
+  # Headers:
+  # X-Api-Key   5sdZCBgJyfWBZwhnijxgQwtt
+  # where 5sdZCBgJyfWBZwhnijxgQwtt is a valid admin user api_key (user.api_key: "5sdZCBgJyfWBZwhnijxgQwtt")  # === Response
+  #   Returns json formatted movie object
+  #   for the requested movie key where found.
+  # === Headers
+  #   Cache-Control:max-age=0, private, must-revalidate
+  #   Connection:Keep-Alive
+  #   Date:Sun, 07 Sep 2014 14:14:45 GMT
+  #   Etag:"2ed7df461fdda7d745e2f7d0a17e8f5e"
+  #   JSON body
   def show
     req_parm = {}
     no_response = {}
@@ -24,6 +40,10 @@ class Api::V1::SmDataController < Api::ApiController
     else
       respond_with no_response, status: 404
     end
+  end
+
+  def update
+
   end
 
 private

@@ -60,6 +60,7 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: 'json' }  do
     namespace :v1 do
       resources :sm_data #, only: [:show]
+      resources :sm_directory, only: [:create, :show, :index, :update]
       match '*all' => 'sm_data#cor', via: :options
     end
   end
