@@ -696,9 +696,6 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
 
           json_resp = JSON.parse(response.body)
 
-          binding.pry
-
-
           curr_fb_likes = json_resp['likes'].to_i
           curr_fb_talk_about =  json_resp['talking_about_count'].to_i
           curr_fb_id =  json_resp['id']
