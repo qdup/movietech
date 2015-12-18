@@ -3,16 +3,20 @@ class Api::V1::SmDirectoryController < Api::ApiController
   respond_to :json
 
 
-  # == POST Track a new movie by TMDB_ID
+  # == POST SOCIAL MEDIA DIRECTORY for a new movie by TMDB_ID
   # === POST /api/v1/sm_directory/
-  # movietech.herokuapp.com/api/v1/sm_data/<tmdb_id>
-  #     adds movie referred by tmdb id where the the sm_directory table
+  # movietech.herokuapp.com/api/v1/sm_directory/<tmdb_id>
+  #     adds social media directory for movie referenced by tmdb id where the the sm_directory table
   #     is not found.
   # === Parameters
   #     tmdb_id: Integer(required). Example: 293660
   #     posts the movie titled Deadpool(2016)
   #       Request URL:http://localhost:9000/api/v1/sm_directory/
-  #   JSON body
+  # === Headers
+      #   Cache-Control:max-age=0, private, must-revalidate
+      #   Connection:Keep-Alive
+      #   Authorization: Token token=5sdZCBgJyfWBZwhnijxgQwtt
+  #   JSON body post
   # Sample body json payload:
   # {
   #   "tmdb_id": 293660,
@@ -26,6 +30,7 @@ class Api::V1::SmDirectoryController < Api::ApiController
   #   "release_date": "2016-09-09T00:00:00.000Z",
   #   "twitter_handle": "twitter handle 999999"
   # }
+
   def create #:nodoc:
     req_parm = {}
     no_response = {}
@@ -38,6 +43,23 @@ class Api::V1::SmDirectoryController < Api::ApiController
       respond_with :api, :v1, no_response, status: 404
     end
   end
+
+
+  # == PUT SOCIAL MEDIA DIRECTORY for an a TMDB id
+  # === PUT /api/v1/sm_directory/:tmdb_id
+  #     updates social media directory for movie referenced by tmdb id
+  #     Movie tmdb_id not modified.
+  # === Parameters
+  #     tmdb_id: Integer(required). Example: 293660
+  #     update the meta for the movie titled Deadpool(2016)
+  #       Request URL: http://movietech.herokuapp.com/api/v1/sm_directory/293660
+  # === Headers
+      #   Cache-Control:max-age=0, private, must-revalidate
+      #   Connection:Keep-Alive
+      #   Authorization: Token token=5sdZCBgJyfWBZwhnijxgQwtt
+  #   JSON body
+  # === Response
+  # JSON object: tmdb movie social media record
 
   def update #:nodoc:
     req_parm = {}
@@ -56,6 +78,20 @@ class Api::V1::SmDirectoryController < Api::ApiController
 
   end
 
+  # == GET SOCIAL MEDIA DIRECTORY for movie BY TMDB id
+  # === GET /api/v1/sm_directory/:tmdb_id
+  #     gets social media directory referenced by tmdb id
+  # === Parameters
+  #     tmdb_id: Integer(required). Example: 259694
+  #     update the meta for the movie titled How To Be Single
+  #       Request URL: http://movietech.herokuapp.com/api/v1/sm_directory/259694
+  # === Headers
+      #   Cache-Control:max-age=0, private, must-revalidate
+      #   Connection:Keep-Alive
+      #   Authorization: Token token=5sdZCBgJyfWBZwhnijxgQwtt
+  #   JSON body
+  # === Response
+  # JSON object: tmdb movie social media record
   def show
     req_parm = {}
     no_response = {}
