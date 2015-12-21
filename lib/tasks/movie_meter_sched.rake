@@ -205,11 +205,11 @@ def load_daily_twitter_stats_from_sm_directory(datekey_req)
   if twitter_token.present?
 
     SmDirectory.all.each do |sm_dir_record|
-      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
+      if sm_dir_record.twitter_id && sm_dir_record.tmdb_id
         sleep(0.5)
 
         curr_twitter_handle = sm_dir_record.twitter_handle
-        puts "Handling page name: #{curr_twitter_handle}"
+        puts "Handling twitter id: #{sm_dir_record.twitter_id }"
 
         twitter_url_w_alias = twitter_api_url_base + '1.1/users/show.json'
         conn = Faraday.new(url: twitter_url_w_alias, ssl: { verify: false }) do |faraday|
@@ -222,20 +222,20 @@ def load_daily_twitter_stats_from_sm_directory(datekey_req)
           req.headers['Content-Type'] = 'application/json'
           req.headers['Authorization'] = "Bearer #{twitter_token}"
           req.params['screen_name'] = curr_twitter_handle
+          req.params['id'] = sm_dir_record.twitter_id
         end
 
         if response.status == 200
-
           curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
+
           json_resp = JSON.parse(response.body)
 
           curr_twitter_statuses = json_resp['statuses_count'].to_i
           curr_twitter_followers = json_resp['followers_count'].to_i
-          curr_twitter_id = json_resp['id']
 
-          curr_twitter_id =  json_resp['id']
+          curr_twitter_id =  sm_dir_record.twitter_id
 
           curr_sm_data.twitter_id = curr_twitter_id
           curr_sm_data.twitter_statuses = curr_twitter_statuses
@@ -260,6 +260,7 @@ def load_daily_twitter_stats_from_sm_directory(datekey_req)
 
             curr_sm_data.twitter_hashtag = curr_twitter_hashtag if curr_twitter_hashtag
           end
+
           curr_sm_data.save
 
           puts "Twitter id: #{curr_twitter_id.to_s}"
@@ -279,7 +280,7 @@ def load_daily_klout_stats_from_sm_directory(datekey_req)
   if true
 
     SmDirectory.all.each do |sm_dir_record|
-      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
+      if sm_dir_record.twitter_id && sm_dir_record.tmdb_id
         sleep(0.5)
 
         curr_tmdb_id = sm_dir_record.tmdb_id
