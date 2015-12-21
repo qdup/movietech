@@ -46,6 +46,9 @@ namespace :movie_meter_sched do
     update_daily_ag_scores_from_sm_directory(datekey_req)
   end
 
+  task initializeSmDirectoryIds: :environment do
+    initializeSmDirectoryIds
+  end
 end
 
 def load_daily_gmail_stats
@@ -592,5 +595,25 @@ def update_daily_ag_scores_from_sm_directory(datekey_req)
 
 end
 
+
+def initializeSmDirectoryIds
+  sm_count = 0
+  sm_success_count = 0
+  sm_fail_count = 0
+  SmDirectory.all.each do |sm_dir_record|
+    sm_count += 1
+    DirectoryProcessor.new(sm_dir_record).assign_social_media_ids
+    if sm_dir_record.save
+      puts "Assigned directory ids for tmdb: #{sm_dir_record.tmdb_id}"
+      sm_success_count += 1
+    else
+      puts "Failed assignment directory ids for tmdb: #{sm_dir_record.tmdb_id}"
+      sm_fail_count += 1
+    end
+  end
+
+  puts "initializeSmDirectoryIds complete. Total directories: #{sm_count.to_s}. Total Success: #{sm_success_count.to_s}. Total fail: #{sm_fail_count.to_s}"
+
+end
 
 
