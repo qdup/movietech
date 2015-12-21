@@ -37,8 +37,11 @@ class Api::V1::SmDirectoryController < Api::ApiController
     no_response = {}
     no_response['Error'] = 'Request failed.'
     req_parm = JSON.parse(params[:sm_directory].to_json)
+
     @sm_directory = SmDirectory.where(tmdb_id: params[:sm_directory][:tmdb_id]).first_or_create(req_parm)
+
     DirectoryProcessor.new(@sm_directory).assign_social_media_ids
+
     if @sm_directory && @sm_directory.save
       respond_with(:api, :v1, @sm_directory)
     else

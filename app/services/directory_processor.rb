@@ -12,12 +12,14 @@ class DirectoryProcessor
   end
 
   def assign_social_media_ids
-    assign_fb_id if @directory.fb_page_name && !@directory.facebook_id
+    assign_fb_id if @directory.fb_page_name && !@directory.fb_id
     assign_twitter_id if @directory.twitter_handle && !@directory.twitter_id
     assign_instagram_id if @directory.twitter_handle && !@directory.instagram_id
   end
 
   def assign_fb_id
+    return if @directory.fb_id
+
     @fb_page_name = @directory.fb_page_name
     fb_graph_url_base = "https://graph.facebook.com/"
 
@@ -62,7 +64,7 @@ class DirectoryProcessor
 
   def assign_twitter_id
 
-    return unless @directory.twitter_handle
+    return if @directory.twitter_id
 
     key = ENV['TWITTER_KEY']
     secret = ENV['TWITTER_SECRET']
@@ -91,6 +93,7 @@ class DirectoryProcessor
     result = result.split('&quot')
     twitter_token = result.first
 
+
     if twitter_token.present?
       sleep(0.5)
 
@@ -116,13 +119,12 @@ class DirectoryProcessor
         @directory.twitter_id = curr_twitter_id
       end
     end
-
   end
 
 
   def assign_instagram_id
-    return unless @directory.instagram_id
-    curr_inst_handle = sm_dir_record.instagram_handle
+    return if @directory.instagram_id
+    curr_inst_handle = @directory.instagram_handle
     inst_url = "https://api.instagram.com/v1/users/search"
 
     conn = Faraday.new(url: inst_url, ssl: { verify: false }) do |faraday|
@@ -137,15 +139,11 @@ class DirectoryProcessor
       request.params['q'] = curr_inst_handle
       request.params['count'] = 'token'
     end
-
     json_resp = JSON.parse(response.body)
-
     if response.status == 200
       curr_inst_id = json_resp['data'].first['id']
       @directory.instagram_id = curr_inst_id
     end
-
-
   end
 
 
