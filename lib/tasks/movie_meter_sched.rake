@@ -124,10 +124,10 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
     #   id: "568876783246225"
     # }
     SmDirectory.all.each do |sm_dir_record|
-      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
+      if sm_dir_record.fb_id && sm_dir_record.tmdb_id
         sleep(0.5)
         puts "Handling page name: #{sm_dir_record.fb_page_name}"
-        fb_url_w_alias = fb_graph_url_base + sm_dir_record.fb_page_name
+        fb_url_w_alias = fb_graph_url_base + sm_dir_record.fb_id
         conn = Faraday.new(url: fb_url_w_alias, ssl: { verify: false }) do |faraday|
           faraday.request :url_encoded             # form-encode POST params
           faraday.response :logger                 # log requests to STDOUT
@@ -143,21 +143,20 @@ def load_daily_fb_stats_from_sm_directory(datekey_req)
         if response.status == 200
           # curr_sm_data = SmData.find_or_create_by(tmdb_id: curr_tmdb_id)
           curr_sm_data = SmData.where(:tmdb_id => sm_dir_record.tmdb_id, :date_key => datekey_req).first_or_create
-          curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
 
+          curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
 
           json_resp = JSON.parse(response.body)
 
           curr_fb_likes = json_resp['likes'].to_i
           curr_fb_talk_about =  json_resp['talking_about_count'].to_i
-          curr_fb_id =  json_resp['id']
+          curr_fb_id =  sm_dir_record.fb_id #json_resp['id']
 
           curr_sm_data.fb_id = curr_fb_id
           curr_sm_data.fb_likes = curr_fb_likes
           curr_sm_data.fb_talk_about = curr_fb_talk_about
           curr_sm_data.tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data.fb_page_name = sm_dir_record.fb_page_name
-
           curr_sm_data.save
 
           puts "Likes: #{curr_fb_likes.to_s}"
