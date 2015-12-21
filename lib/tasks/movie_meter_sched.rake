@@ -409,7 +409,7 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
   if true
 
     SmDirectory.all.each do |sm_dir_record|
-      if sm_dir_record.fb_page_name && sm_dir_record.tmdb_id
+      if sm_dir_record.instagram_id && sm_dir_record.tmdb_id
         sleep(0.5)
 
         curr_tmdb_id = sm_dir_record.tmdb_id
@@ -432,7 +432,7 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
         json_resp = JSON.parse(response.body)
 
         if response.status == 200
-          curr_inst_id = json_resp['data'].first['id']
+          curr_inst_id = sm_dir_record.instagram_id #json_resp['data'].first['id']
           curr_tmdb_id = sm_dir_record.tmdb_id
           curr_sm_data = SmData.where(:tmdb_id => curr_tmdb_id, :date_key => datekey_req).first_or_create
           curr_sm_data.date_key = datekey_req unless curr_sm_data.date_key
@@ -463,7 +463,11 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
             request.params['count'] = 'token'
           end
 
+          binding.pry
+
           if response.status == 200
+
+            binding.pry
 
             json_resp = JSON.parse(response.body)
 
@@ -477,6 +481,8 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
             curr_sm_data.inst_followed_by = curr_inst_followed_by.to_i
             curr_sm_data.inst_follows = curr_inst_follows.to_i
             curr_sm_data.inst_handle = curr_inst_handle
+
+            binding.pry
 
             #get hash tag count
             if sm_dir_record.instagram_hashtags.first.present?
@@ -508,6 +514,8 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
               end
             end
           end
+
+          binding.pry
 
           curr_sm_data.save
 
