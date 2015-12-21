@@ -75,6 +75,9 @@ class Api::V1::SmDirectoryController < Api::ApiController
     req_parm = JSON.parse(params[:sm_directory].to_json)
     @sm_directory = SmDirectory.where(tmdb_id: params[:sm_directory][:tmdb_id]).first
     req_parm.except!('tmdb_id')
+
+    DirectoryProcessor.new(@sm_directory).assign_social_media_ids
+
     if @sm_directory && @sm_directory.update(req_parm)
       render json: @sm_directory
     else
