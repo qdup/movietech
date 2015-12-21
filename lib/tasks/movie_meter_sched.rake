@@ -463,11 +463,7 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
             request.params['count'] = 'token'
           end
 
-          binding.pry
-
           if response.status == 200
-
-            binding.pry
 
             json_resp = JSON.parse(response.body)
 
@@ -481,8 +477,6 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
             curr_sm_data.inst_followed_by = curr_inst_followed_by.to_i
             curr_sm_data.inst_follows = curr_inst_follows.to_i
             curr_sm_data.inst_handle = curr_inst_handle
-
-            binding.pry
 
             #get hash tag count
             if sm_dir_record.instagram_hashtags.first.present?
@@ -514,8 +508,6 @@ def load_daily_instagram_stats_from_sm_directory(datekey_req)
               end
             end
           end
-
-          binding.pry
 
           curr_sm_data.save
 
