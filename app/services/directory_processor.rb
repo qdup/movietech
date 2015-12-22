@@ -14,7 +14,7 @@ class DirectoryProcessor
   def assign_social_media_ids
     assign_fb_id if @directory.fb_page_name && !@directory.fb_id
     assign_twitter_id if @directory.twitter_handle && !@directory.twitter_id
-    assign_instagram_id if @directory.twitter_handle && !@directory.instagram_id
+    assign_instagram_id if @directory.instagram_handle && !@directory.instagram_id
   end
 
   def assign_fb_id
